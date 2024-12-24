@@ -33,8 +33,8 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for simplicity during development
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/signup", "/signin", "/css/**", "/js/**").permitAll() // Allow public access to signup, signin, and static resources
-                        .anyRequest().authenticated() // Require authentication for all other requests
+                        .requestMatchers("/signup","/signin","/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/signin") // Custom login page
@@ -42,14 +42,9 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout") // URL to trigger logout
-                        .logoutSuccessUrl("/signin?logout") // Redirect to /signin with a logout message
                         .permitAll()
-                )
-                .sessionManagement(session -> session
-                        .maximumSessions(1) // Allow only one active session per user
-                        .maxSessionsPreventsLogin(false) // Allow new login to replace the old session
                 );
         return http.build();
     }
+
 }

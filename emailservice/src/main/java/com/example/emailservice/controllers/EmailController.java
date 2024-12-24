@@ -1,5 +1,6 @@
 package com.example.emailservice.controllers;
 
+import com.example.emailservice.models.EmailDTO;
 import com.example.emailservice.models.EmailForm;
 import com.example.emailservice.services.EmailService;
 import jakarta.mail.MessagingException;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.mail.Message;
 import java.io.IOException;
 import com.example.emailservice.services.InboxService;
 import java.util.List;
@@ -45,44 +45,49 @@ public class EmailController {
         return "redirect:/send-email";
     }
 
-    @GetMapping
-    public ResponseEntity<List<String>> getInbox(@RequestParam(defaultValue = "1") int page,
-                                                 @RequestParam(defaultValue = "10") int size) {
+    @GetMapping("/inbox")
+    public String showInbox(@RequestParam(defaultValue = "") String keyword,
+                            @RequestParam(defaultValue = "0") int page,
+                            @RequestParam(defaultValue = "10") int size,
+                            Model model) {
         try {
-            List<Message> messages = inboxService.fetchEmails(page, size);
-            List<String> subjects = messages.stream()
-                    .map(message -> {
-                        try {
-                            return message.getSubject();
-                        } catch (javax.mail.MessagingException e) {
-                            return "Error fetching subject";
-                        }
-                    })
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(subjects);
-        } catch (javax.mail.MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+            List<EmailDTO> emails;
+            if (!keyword.isEmpty()) {
+                // Implement search functionality later if needed
+                emails = inboxService.fetchEmails(page + 1, size); // Placeholder
+            } else {
+                emails = inboxService.searchEmails(keyword,page + 1, size);
+            }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<String>> searchInbox(@RequestParam String keyword,
-                                                    @RequestParam(defaultValue = "1") int page,
-                                                    @RequestParam(defaultValue = "10") int size) {
-        try {
-            List<Message> messages = inboxService.searchEmails(keyword, page, size);
-            List<String> subjects = messages.stream()
-                    .map(message -> {
-                        try {
-                            return message.getSubject();
-                        } catch (javax.mail.MessagingException e) {
-                            return "Error fetching subject";
-                        }
-                    })
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(subjects);
-        } catch (IOException | javax.mail.MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            model.addAttribute("emails", emails);
+            model.addAttribute("keyword", keyword);
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", (int) Math.ceil((double) emails.size() / size));
+            return "inbox";
+        } catch (Exception e) {
+            model.addAttribute("error", "Failed to load emails: " + e.getMessage());
+            return "inbox";
         }
     }
+//    @GetMapping("/search")
+//    public ResponseEntity<List<String>> searchInbox(@RequestParam String keyword,
+//                                                    @RequestParam(defaultValue = "1") int page,
+//                                                    @RequestParam(defaultValue = "10") int size) {
+//        try {
+//            List<Message> messages = inboxService.searchEmails(keyword, page, size);
+//            List<String> subjects = messages.stream()
+//                    .map(message -> {
+//                        try {
+//                            return message.getSubject();
+//                        } catch (javax.mail.MessagingException e) {
+//                            return "Error fetching subject";
+//                        }
+//                    })
+//                    .collect(Collectors.toList());
+//            return ResponseEntity.ok(subjects);
+//        } catch (IOException | javax.mail.MessagingException e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+//        }
+//    }
+    
 }
