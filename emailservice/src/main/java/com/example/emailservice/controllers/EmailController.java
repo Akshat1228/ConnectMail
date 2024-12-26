@@ -52,7 +52,7 @@ public class EmailController {
                             Model model) {
         try {
             List<EmailDTO> emails;
-            if (!keyword.isEmpty()) {
+            if (keyword.isEmpty()) {
                 // Implement search functionality later if needed
                 emails = inboxService.fetchEmails(page + 1, size); // Placeholder
             } else {
