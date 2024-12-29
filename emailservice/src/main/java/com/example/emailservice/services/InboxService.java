@@ -40,7 +40,7 @@ public class InboxService {
         int start = Math.max(totalMessages - ((page - 1) * size), 1);
         int end = Math.max(start - size + 1, 1);
 
-        if (start < 1 || end < 1 || start < end) {
+        if (start < end) {
             return new ArrayList<>();
         }
 
@@ -52,7 +52,7 @@ public class InboxService {
                 EmailDTO emailDTO = new EmailDTO();
                 emailDTO.setRecipientEmail(message.getAllRecipients()[0].toString());
                 emailDTO.setSubject(message.getSubject());
-                emailDTO.setMessage(message.getContent().toString());
+                emailDTO.setMessage(extractMessageContent(message));
                 emailDTO.setSentAt(message.getSentDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
                 emailDTOs.add(emailDTO);
             } catch (Exception e) {
@@ -127,5 +127,28 @@ public class InboxService {
         }
         return ""; // Return empty string if no content is found
     }
-
+    private String extractMessageContent(Message message) {
+        try {
+            Object content = message.getContent();
+            if (content instanceof String) {
+                // If the content is plain text or simple HTML
+                return content.toString();
+            } else if (content instanceof Multipart) {
+                Multipart multipart = (Multipart) content;
+                for (int i = 0; i < multipart.getCount(); i++) {
+                    BodyPart bodyPart = multipart.getBodyPart(i);
+                    if (bodyPart.isMimeType("text/plain")) {
+                        // Return plain text content
+                        return bodyPart.getContent().toString();
+                    } else if (bodyPart.isMimeType("text/html")) {
+                        // Return HTML content (if preferred)
+                        return bodyPart.getContent().toString();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace(); // Log the error for debugging
+        }
+        return "Unable to extract content"; // Fallback message
+    }
 }

@@ -38,7 +38,7 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/signin") // Custom login page
-                        .defaultSuccessUrl("/send-email", true) // Redirect to /send-email after successful login
+                        .defaultSuccessUrl("/inbox", true) // Redirect to /send-email after successful login
                         .permitAll()
                 )
                 .logout(logout -> logout
