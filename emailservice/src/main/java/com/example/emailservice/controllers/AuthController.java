@@ -25,7 +25,7 @@ public class AuthController {
     public String registerUser(@ModelAttribute("user") User user, Model model) {
         userService.registerUser(user);
         model.addAttribute("successMessage", "Registration successful! Please sign in.");
-        return "redirect:/signin";
+        return "/signin";
     }
 
     @GetMapping("/signin")
